@@ -1,6 +1,6 @@
 import { caller } from "@/trpc/server";
-import { CreateTask } from "./CreateTask";
-import { TaskItem } from "./TaskItem";
+import { CreateTask } from "../CreateTask/CreateTask";
+import { TaskItem } from "../TaskItem/TaskItem";
 
 export default async function TaskList() {
   // fully typed, no http roundtrips

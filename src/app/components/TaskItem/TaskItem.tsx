@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Task } from "@/server/services/task";
 import { useTRPC } from "@/trpc/client";
-import { DeleteTaskButton } from "./DeleteTaskButton";
+import { DeleteTaskButton } from "../DeleteTaskButton/DeleteTaskButton";
 
 export function TaskItem({ task }: { task: Task }) {
   const trpc = useTRPC();
