@@ -7,12 +7,23 @@ const titulo = z.string().trim().min(1).max(200);
 const descricao = z.string().trim().max(2000);
 const id = z.uuid();
 
+export const DEFAULT_PAGE_SIZE = 10;
+
 function notFound(taskId: string): never {
   throw new TRPCError({ code: "NOT_FOUND", message: `Task ${taskId} not found` });
 }
 
 export const appRouter = createTRPCRouter({
-  listTasks: baseProcedure.query(() => taskService.list()),
+  listTasks: baseProcedure
+    .input(
+      z
+        .object({
+          page: z.int().min(1).default(1),
+          pageSize: z.int().min(1).max(100).default(DEFAULT_PAGE_SIZE),
+        })
+        .default({ page: 1, pageSize: DEFAULT_PAGE_SIZE }),
+    )
+    .query(({ input }) => taskService.listPage(input.page, input.pageSize)),
 
   createTask: baseProcedure
     .input(z.object({ titulo, descricao: descricao.optional() }))

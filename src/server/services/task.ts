@@ -7,12 +7,38 @@ export type Task = {
   dataCriacao: number;
 };
 
+export type Paginated<T> = {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
 const store = ((globalThis as { __taskStore?: Map<string, Task> }).__taskStore ??=
   new Map());
 
 export const taskService = {
   list(): Task[] {
     return [...store.values()].sort((a, b) => a.dataCriacao - b.dataCriacao);
+  },
+
+  /**
+   * One page of tasks, oldest first. A page past the end is clamped to the
+   * last page, so deleting the last item on a page never shows an empty one.
+   */
+  listPage(page: number, pageSize: number): Paginated<Task> {
+    const all = this.list();
+    const totalPages = Math.max(1, Math.ceil(all.length / pageSize));
+    const current = Math.min(Math.max(1, page), totalPages);
+    const start = (current - 1) * pageSize;
+    return {
+      items: all.slice(start, start + pageSize),
+      page: current,
+      pageSize,
+      total: all.length,
+      totalPages,
+    };
   },
 
   create(input: { titulo: string; descricao?: string }): Task {
