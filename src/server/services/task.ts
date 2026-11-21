@@ -37,6 +37,21 @@ export const taskService = {
     return next;
   },
 
+  /** Creates `count` numbered sample tasks, continuing from the current size. */
+  createMany(count: number): Task[] {
+    const start = store.size;
+    return Array.from({ length: count }, (_, i) =>
+      this.create({ titulo: `Tarefa ${start + i + 1}` }),
+    );
+  },
+
+  /** Deletes every task; returns how many were removed. */
+  clear(): number {
+    const count = store.size;
+    store.clear();
+    return count;
+  },
+
   delete(id: string): boolean {
     return store.delete(id);
   },

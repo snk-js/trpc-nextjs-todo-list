@@ -82,4 +82,18 @@ describe("taskService", () => {
       expect(taskService.delete("missing")).toBe(false);
     });
   });
+
+  it("createMany adds numbered tasks with unique ids", () => {
+    taskService.create({ titulo: "existing" });
+    const created = taskService.createMany(3);
+    expect(created.map((t) => t.titulo)).toEqual(["Tarefa 2", "Tarefa 3", "Tarefa 4"]);
+    expect(new Set(created.map((t) => t.id)).size).toBe(3);
+    expect(taskService.list()).toHaveLength(4);
+  });
+
+  it("clear removes everything and returns the count", () => {
+    taskService.createMany(5);
+    expect(taskService.clear()).toBe(5);
+    expect(taskService.list()).toEqual([]);
+  });
 });

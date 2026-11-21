@@ -77,4 +77,25 @@ describe("appRouter", () => {
       expect(await errorCode(caller.deleteTask({ id: unknownId }))).toBe("NOT_FOUND");
     });
   });
+
+  describe("addSampleTasks", () => {
+    it("adds the requested number of tasks", async () => {
+      expect(await caller.addSampleTasks({ count: 50 })).toEqual({ created: 50 });
+      expect(await caller.listTasks()).toHaveLength(50);
+    });
+
+    it("rejects counts outside 1..100 and non-integers", async () => {
+      for (const count of [0, 101, 1.5]) {
+        expect(await errorCode(caller.addSampleTasks({ count }))).toBe("BAD_REQUEST");
+      }
+    });
+  });
+
+  describe("clearTasks", () => {
+    it("deletes all tasks and reports how many", async () => {
+      await caller.addSampleTasks({ count: 3 });
+      expect(await caller.clearTasks()).toEqual({ deleted: 3 });
+      expect(await caller.listTasks()).toEqual([]);
+    });
+  });
 });

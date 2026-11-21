@@ -28,6 +28,12 @@ export const appRouter = createTRPCRouter({
       if (!taskService.delete(input.id)) notFound(input.id);
       return { id: input.id };
     }),
+
+  addSampleTasks: baseProcedure
+    .input(z.object({ count: z.int().min(1).max(100) }))
+    .mutation(({ input }) => ({ created: taskService.createMany(input.count).length })),
+
+  clearTasks: baseProcedure.mutation(() => ({ deleted: taskService.clear() })),
 });
 
 export type AppRouter = typeof appRouter;
