@@ -2,9 +2,8 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { baseProcedure, createTRPCRouter } from "../init";
 import { CURSOR_PATTERN, taskService } from "@/server/services/task";
+import { descricao, titulo } from "@/shared/task-schema";
 
-const titulo = z.string().trim().min(1).max(200);
-const descricao = z.string().trim().max(2000);
 const id = z.uuid();
 
 function notFound(taskId: string): never {

@@ -88,4 +88,18 @@ describe("TaskItem", () => {
     await waitFor(() => expect(invalidate).toHaveBeenCalledOnce());
     expect(taskService.list()).toEqual([]);
   });
+
+  it("shows a field error and keeps editing when the new titulo is blank", async () => {
+    const { task, user, invalidate } = setup({ titulo: "keep me" });
+
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.clear(input("titulo"));
+    await user.type(input("titulo"), "  ");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect((await screen.findByRole("alert")).textContent).toBe("Title is required.");
+    expect(input("titulo").getAttribute("aria-invalid")).toBe("true");
+    expect(taskService.list()).toEqual([task]);
+    expect(invalidate).not.toHaveBeenCalled();
+  });
 });

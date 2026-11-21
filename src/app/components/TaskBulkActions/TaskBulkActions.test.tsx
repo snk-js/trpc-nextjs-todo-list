@@ -10,10 +10,12 @@ describe("TaskBulkActions", () => {
     taskService.create({ titulo: "existing" });
     const { invalidate } = renderWithTRPC(<TaskBulkActions />);
 
-    await userEvent.setup().click(screen.getByRole("button", { name: "Add 50 tasks" }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Add 50 tasks" }));
 
     await waitFor(() => expect(invalidate).toHaveBeenCalledOnce());
-    const titulos = taskService.list().map((t) => t.titulo); // newest first
+    const titulos = taskService.list().map((t) => t.titulo);
     expect(titulos).toHaveLength(51);
     expect(titulos.slice(0, 2)).toEqual(["Tarefa 51", "Tarefa 50"]);
     expect(titulos.at(-1)).toBe("existing");
@@ -23,7 +25,9 @@ describe("TaskBulkActions", () => {
     taskService.createMany(3);
     const { invalidate } = renderWithTRPC(<TaskBulkActions />);
 
-    await userEvent.setup().click(screen.getByRole("button", { name: "Clear all" }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Clear all" }));
 
     await waitFor(() => expect(invalidate).toHaveBeenCalledOnce());
     expect(taskService.list()).toEqual([]);

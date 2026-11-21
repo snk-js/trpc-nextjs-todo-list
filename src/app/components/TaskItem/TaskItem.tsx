@@ -3,8 +3,11 @@ import { useMutation } from "@tanstack/react-query";
 import { useInvalidateTasks } from "@/app/hooks/useInvalidateTasks";
 import { useState } from "react";
 import type { Task } from "@/server/services/task";
+import { DESCRICAO_MAX, TITULO_MAX } from "@/shared/task-limits";
 import { useTRPC } from "@/trpc/client";
+import { describeError } from "@/trpc/errors";
 import { DeleteTaskButton } from "../DeleteTaskButton/DeleteTaskButton";
+import { FieldError } from "../FieldError/FieldError";
 
 export function TaskItem({ task }: { task: Task }) {
   const trpc = useTRPC();
@@ -18,6 +21,10 @@ export function TaskItem({ task }: { task: Task }) {
       },
     }),
   );
+
+  const err = update.error ? describeError(update.error) : null;
+  const tituloErrId = `titulo-error-${task.id}`;
+  const descricaoErrId = `descricao-error-${task.id}`;
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,13 +41,25 @@ export function TaskItem({ task }: { task: Task }) {
     return (
       <li>
         <form onSubmit={onSubmit}>
-          <input name="titulo" defaultValue={task.titulo} required maxLength={200} autoFocus />
+          <input
+            name="titulo"
+            defaultValue={task.titulo}
+            required
+            maxLength={TITULO_MAX}
+            autoFocus
+            aria-invalid={!!err?.fieldErrors.titulo}
+            aria-describedby={tituloErrId}
+          />
+          <FieldError id={tituloErrId} message={err?.fieldErrors.titulo} />
           <input
             name="descricao"
             defaultValue={task.descricao ?? ""}
             placeholder="Descrição (opcional)"
-            maxLength={2000}
+            maxLength={DESCRICAO_MAX}
+            aria-invalid={!!err?.fieldErrors.descricao}
+            aria-describedby={descricaoErrId}
           />
+          <FieldError id={descricaoErrId} message={err?.fieldErrors.descricao} />
           <button type="submit" disabled={update.isPending}>
             {update.isPending ? "Saving…" : "Save"}
           </button>
@@ -54,7 +73,7 @@ export function TaskItem({ task }: { task: Task }) {
           >
             Cancel
           </button>
-          {update.error && <span>{update.error.message}</span>}
+          {err && !Object.keys(err.fieldErrors).length && <span role="alert">{err.message}</span>}
         </form>
       </li>
     );

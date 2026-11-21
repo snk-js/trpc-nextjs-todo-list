@@ -8,7 +8,6 @@ const shared = {
   resolve: {
     alias: {
       "@": src,
-      // the real package throws outside the react-server condition
       "server-only": `${src}/test/server-only.ts`,
     },
   },
@@ -23,7 +22,7 @@ export default defineConfig({
         test: {
           name: "backend",
           environment: "node",
-          include: ["src/server/**/*.test.ts", "src/trpc/**/*.test.ts"],
+          include: ["src/server/**/*.test.ts", "src/trpc/**/*.test.ts", "src/app/api/**/*.test.ts"],
           setupFiles: ["src/test/setup.ts"],
         },
       },

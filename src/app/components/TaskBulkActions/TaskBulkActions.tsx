@@ -2,6 +2,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useInvalidateTasks } from "@/app/hooks/useInvalidateTasks";
 import { useTRPC } from "@/trpc/client";
+import { describeError } from "@/trpc/errors";
 
 export function TaskBulkActions() {
   const trpc = useTRPC();
@@ -20,7 +21,7 @@ export function TaskBulkActions() {
       <button onClick={() => clear.mutate()} disabled={busy}>
         {clear.isPending ? "Clearing…" : "Clear all"}
       </button>
-      {error && <p>{error.message}</p>}
+      {error && <p role="alert">{describeError(error).message}</p>}
     </div>
   );
 }

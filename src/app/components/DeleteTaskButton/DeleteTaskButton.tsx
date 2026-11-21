@@ -2,6 +2,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useInvalidateTasks } from "@/app/hooks/useInvalidateTasks";
 import { useTRPC } from "@/trpc/client";
+import { describeError } from "@/trpc/errors";
 
 export function DeleteTaskButton({ id }: { id: string }) {
   const trpc = useTRPC();
@@ -15,7 +16,7 @@ export function DeleteTaskButton({ id }: { id: string }) {
       <button onClick={() => remove.mutate({ id })} disabled={remove.isPending}>
         {remove.isPending ? "Deleting…" : "Delete"}
       </button>
-      {remove.error && <span>{remove.error.message}</span>}
+      {remove.error && <span role="alert">{describeError(remove.error).message}</span>}
     </>
   );
 }

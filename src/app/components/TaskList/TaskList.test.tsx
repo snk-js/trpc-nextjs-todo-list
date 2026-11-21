@@ -1,5 +1,5 @@
 import { screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { taskService } from "@/server/services/task";
 import { renderWithTRPC } from "@/test/render";
 import TaskList from "./TaskList";
@@ -39,5 +39,20 @@ describe("TaskList", () => {
     renderWithTRPC(await TaskList());
     expect(screen.getByRole("heading", { name: "Tasks" })).toBeTruthy();
     expect(screen.getByText("No tasks yet")).toBeTruthy();
+  });
+
+  it("falls back to a client fetch when the server prefetch fails", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    taskService.createMany(3);
+    const listPage = vi.spyOn(taskService, "listPage").mockImplementationOnce(() => {
+      throw new Error("db blip");
+    });
+
+    renderWithTRPC(await TaskList());
+
+    expect(log).toHaveBeenCalledOnce(); // logged, not thrown
+    expect(await screen.findAllByRole("listitem")).toHaveLength(3); // fetched by the client
+    expect(listPage).toHaveBeenCalledTimes(2);
+    vi.restoreAllMocks();
   });
 });

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createTRPCClient, localLink } from "@trpc/client";
+import { createTRPCClient, localLink, type TRPCLink } from "@trpc/client";
 import { render } from "@testing-library/react";
 import { Suspense, type ReactElement } from "react";
 import { vi } from "vitest";
@@ -15,12 +15,17 @@ export function makeTestQueryClient() {
 /**
  * Renders with a tRPC client that calls the real router in-process,
  * so component tests exercise validation and the service too.
+ * Pass `links` to simulate other transports (e.g. a failing network).
  * `invalidate` spies on cache invalidation, which every mutation triggers.
  */
-export function renderWithTRPC(ui: ReactElement, queryClient = makeTestQueryClient()) {
-  const trpcClient = createTRPCClient<AppRouter>({
-    links: [localLink({ router: appRouter, createContext: async () => ({ userId: null }) })],
-  });
+export function renderWithTRPC(
+  ui: ReactElement,
+  {
+    queryClient = makeTestQueryClient(),
+    links = [localLink({ router: appRouter, createContext: async () => ({ userId: null }) })],
+  }: { queryClient?: QueryClient; links?: TRPCLink<AppRouter>[] } = {},
+) {
+  const trpcClient = createTRPCClient<AppRouter>({ links });
   const invalidate = vi.spyOn(queryClient, "invalidateQueries");
   const result = render(
     <QueryClientProvider client={queryClient}>

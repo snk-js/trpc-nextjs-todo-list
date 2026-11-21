@@ -1,7 +1,10 @@
 "use client";
 import { useMutation } from "@tanstack/react-query";
 import { useInvalidateTasks } from "@/app/hooks/useInvalidateTasks";
+import { DESCRICAO_MAX, TITULO_MAX } from "@/shared/task-limits";
 import { useTRPC } from "@/trpc/client";
+import { describeError } from "@/trpc/errors";
+import { FieldError } from "../FieldError/FieldError";
 
 export function CreateTask() {
   const trpc = useTRPC();
@@ -11,6 +14,8 @@ export function CreateTask() {
       onSuccess: () => invalidateTasks(),
     }),
   );
+
+  const err = create.error ? describeError(create.error) : null;
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -28,16 +33,27 @@ export function CreateTask() {
 
   return (
     <form onSubmit={onSubmit}>
-      <input name="titulo" placeholder="Título" required maxLength={200} />
+      <input
+        name="titulo"
+        placeholder="Título"
+        required
+        maxLength={TITULO_MAX}
+        aria-invalid={!!err?.fieldErrors.titulo}
+        aria-describedby="create-titulo-error"
+      />
+      <FieldError id="create-titulo-error" message={err?.fieldErrors.titulo} />
       <input
         name="descricao"
         placeholder="Descrição (opcional)"
-        maxLength={2000}
+        maxLength={DESCRICAO_MAX}
+        aria-invalid={!!err?.fieldErrors.descricao}
+        aria-describedby="create-descricao-error"
       />
       <button type="submit" disabled={create.isPending}>
         {create.isPending ? "Creating…" : "Create task"}
       </button>
-      {create.error && <p>{create.error.message}</p>}
+      <FieldError id="create-descricao-error" message={err?.fieldErrors.descricao} />
+      {err && !Object.keys(err.fieldErrors).length && <p role="alert">{err.message}</p>}
     </form>
   );
 }
