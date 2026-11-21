@@ -1,0 +1,33 @@
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { baseProcedure, createTRPCRouter } from "../init";
+import { taskService } from "@/server/services/task";
+
+const titulo = z.string().trim().min(1).max(200);
+const descricao = z.string().trim().max(2000);
+const id = z.uuid();
+
+function notFound(taskId: string): never {
+  throw new TRPCError({ code: "NOT_FOUND", message: `Task ${taskId} not found` });
+}
+
+export const appRouter = createTRPCRouter({
+  listTasks: baseProcedure.query(() => taskService.list()),
+
+  createTask: baseProcedure
+    .input(z.object({ titulo, descricao: descricao.optional() }))
+    .mutation(({ input }) => taskService.create(input)),
+
+  updateTask: baseProcedure
+    .input(z.object({ id, titulo: titulo.optional(), descricao: descricao.nullable().optional() }))
+    .mutation(({ input }) => taskService.update(input) ?? notFound(input.id)),
+
+  deleteTask: baseProcedure
+    .input(z.object({ id }))
+    .mutation(({ input }) => {
+      if (!taskService.delete(input.id)) notFound(input.id);
+      return { id: input.id };
+    }),
+});
+
+export type AppRouter = typeof appRouter;

@@ -1,11 +1,11 @@
 import styles from "./page.module.css";
-import TrpcDemo from "./components/TrpcDemo";
+import TaskList from "./components/TaskList";
 
 export default function Home() {
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <TrpcDemo />
+        <TaskList />
       </main>
       <footer className={styles.footer}>something</footer>
     </div>
