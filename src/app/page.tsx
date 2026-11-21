@@ -7,7 +7,6 @@ export default function Home() {
       <main className={styles.main}>
         <TaskList />
       </main>
-      <footer className={styles.footer}>something</footer>
     </div>
   );
 }

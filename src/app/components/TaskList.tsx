@@ -1,6 +1,6 @@
 import { caller } from "@/trpc/server";
 import { CreateTask } from "./CreateTask";
-import { DeleteTaskButton } from "./DeleteTaskButton";
+import { TaskItem } from "./TaskItem";
 
 export default async function TaskList() {
   // fully typed, no http roundtrips
@@ -12,12 +12,7 @@ export default async function TaskList() {
       <CreateTask />
       <ul>
         {tasks.map((task) => (
-          <li key={task.id}>
-            <strong>{task.titulo}</strong>
-            {task.descricao && <p>{task.descricao}</p>}
-            <small>{new Date(task.dataCriacao).toISOString()}</small>{" "}
-            <DeleteTaskButton id={task.id} />
-          </li>
+          <TaskItem key={task.id} task={task} />
         ))}
       </ul>
     </section>
