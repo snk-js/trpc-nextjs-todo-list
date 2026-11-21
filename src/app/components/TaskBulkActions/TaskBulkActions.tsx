@@ -1,12 +1,12 @@
 "use client";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useInvalidateTasks } from "@/app/hooks/useInvalidateTasks";
 import { useTRPC } from "@/trpc/client";
 
 export function TaskBulkActions() {
   const trpc = useTRPC();
-  const router = useRouter();
-  const onSuccess = () => router.refresh();
+  const invalidateTasks = useInvalidateTasks();
+  const onSuccess = () => invalidateTasks();
   const add = useMutation(trpc.addSampleTasks.mutationOptions({ onSuccess }));
   const clear = useMutation(trpc.clearTasks.mutationOptions({ onSuccess }));
   const busy = add.isPending || clear.isPending;

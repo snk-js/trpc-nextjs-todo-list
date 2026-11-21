@@ -4,11 +4,22 @@ import { taskService } from "@/server/services/task";
 import { renderWithTRPC } from "@/test/render";
 import TaskList from "./TaskList";
 
+const shownTitulos = () =>
+  screen.queryAllByRole("listitem").map((li) => li.querySelector("strong")?.textContent);
+
 describe("TaskList", () => {
-  it("renders an empty list", async () => {
-    renderWithTRPC(await TaskList());
-    expect(screen.getByRole("heading", { name: "Tasks (0)" })).toBeTruthy();
-    expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+  it("prefetches page 1 on the server, so it renders with data and no fetch", async () => {
+    taskService.createMany(25);
+
+    const { invalidate, queryClient } = renderWithTRPC(await TaskList());
+
+    // synchronous: the hydrated cache already holds page 1, nothing suspends
+    expect(screen.queryByText("Suspended…")).toBeNull();
+    expect(shownTitulos()).toHaveLength(20);
+    expect(shownTitulos()[0]).toBe("Tarefa 25");
+    // one cached query, i.e. the client reused the prefetched key
+    expect(queryClient.getQueryCache().getAll()).toHaveLength(1);
+    expect(invalidate).not.toHaveBeenCalled();
   });
 
   it("renders each task with Edit and Delete only", async () => {
@@ -17,32 +28,16 @@ describe("TaskList", () => {
 
     renderWithTRPC(await TaskList());
 
-    expect(screen.getByRole("heading", { name: "Tasks (2)" })).toBeTruthy();
-    const items = screen.getAllByRole("listitem");
-    expect(items.map((li) => li.querySelector("strong")?.textContent)).toEqual([
-      "first",
-      "second",
-    ]);
-    for (const li of items) {
+    expect(shownTitulos()).toEqual(["second", "first"]);
+    for (const li of screen.getAllByRole("listitem")) {
       const buttons = within(li).getAllByRole("button").map((b) => b.textContent);
       expect(buttons).toEqual(["Edit", "Delete"]);
     }
   });
 
-  it("shows 10 tasks per page with pagination", async () => {
-    taskService.createMany(25);
-
-    renderWithTRPC(await TaskList({ page: 3 }));
-
-    expect(screen.getByRole("heading", { name: "Tasks (25)" })).toBeTruthy();
-    const titulos = screen.getAllByRole("listitem").map((li) => li.querySelector("strong")?.textContent);
-    expect(titulos).toEqual(["Tarefa 21", "Tarefa 22", "Tarefa 23", "Tarefa 24", "Tarefa 25"]);
-    expect(screen.getByText("Page 3 of 3")).toBeTruthy();
-  });
-
-  it("hides pagination when everything fits on one page", async () => {
-    taskService.createMany(10);
+  it("renders the empty state", async () => {
     renderWithTRPC(await TaskList());
-    expect(screen.queryByRole("navigation", { name: "Pagination" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Tasks" })).toBeTruthy();
+    expect(screen.getByText("No tasks yet")).toBeTruthy();
   });
 });

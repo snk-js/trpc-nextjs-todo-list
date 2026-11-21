@@ -1,13 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { baseProcedure, createTRPCRouter } from "../init";
-import { taskService } from "@/server/services/task";
+import { CURSOR_PATTERN, taskService } from "@/server/services/task";
 
 const titulo = z.string().trim().min(1).max(200);
 const descricao = z.string().trim().max(2000);
 const id = z.uuid();
-
-export const DEFAULT_PAGE_SIZE = 10;
 
 function notFound(taskId: string): never {
   throw new TRPCError({ code: "NOT_FOUND", message: `Task ${taskId} not found` });
@@ -16,14 +14,13 @@ function notFound(taskId: string): never {
 export const appRouter = createTRPCRouter({
   listTasks: baseProcedure
     .input(
-      z
-        .object({
-          page: z.int().min(1).default(1),
-          pageSize: z.int().min(1).max(100).default(DEFAULT_PAGE_SIZE),
-        })
-        .default({ page: 1, pageSize: DEFAULT_PAGE_SIZE }),
+      z.object({
+        // filled in by tRPC from the infinite query's page param; never pass it yourself
+        cursor: z.string().regex(CURSOR_PATTERN).nullish(),
+        limit: z.int().min(1).max(50).default(20),
+      }),
     )
-    .query(({ input }) => taskService.listPage(input.page, input.pageSize)),
+    .query(({ input }) => taskService.listPage(input)),
 
   createTask: baseProcedure
     .input(z.object({ titulo, descricao: descricao.optional() }))

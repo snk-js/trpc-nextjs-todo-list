@@ -1,24 +1,28 @@
-import { caller } from "@/trpc/server";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getQueryClient, trpc } from "@/trpc/server";
 import { CreateTask } from "../CreateTask/CreateTask";
+import { LoadingSpinner } from "../LoadingSpinner/LoadingSpinner";
 import { TaskBulkActions } from "../TaskBulkActions/TaskBulkActions";
-import { Pagination } from "../Pagination/Pagination";
-import { TaskItem } from "../TaskItem/TaskItem";
+import { getNextPageParam, TASK_FEED_INPUT } from "../TaskFeed/feed-options";
+import { TaskFeed } from "../TaskFeed/TaskFeed";
 
-export default async function TaskList({ page = 1 }: { page?: number } = {}) {
-  // fully typed, no http roundtrips
-  const { items, total, ...pageInfo } = await caller.listTasks({ page });
+export default async function TaskList() {
+  // page 1 is fetched in-process and handed to the client cache, so the feed
+  // renders with data and no spinner; later pages load on the client
+  const queryClient = getQueryClient();
+  await queryClient.prefetchInfiniteQuery(
+    trpc.listTasks.infiniteQueryOptions(TASK_FEED_INPUT, { getNextPageParam }),
+  );
 
   return (
     <section>
-      <h2>Tasks ({total})</h2>
+      <h2>Tasks</h2>
       <CreateTask />
       <TaskBulkActions />
-      <ul>
-        {items.map((task) => (
-          <TaskItem key={task.id} task={task} />
-        ))}
-      </ul>
-      <Pagination page={pageInfo.page} totalPages={pageInfo.totalPages} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <TaskFeed />
+      </HydrationBoundary>
+      <LoadingSpinner />
     </section>
   );
 }

@@ -1,14 +1,14 @@
 "use client";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useInvalidateTasks } from "@/app/hooks/useInvalidateTasks";
 import { useTRPC } from "@/trpc/client";
 
 export function CreateTask() {
   const trpc = useTRPC();
-  const router = useRouter();
+  const invalidateTasks = useInvalidateTasks();
   const create = useMutation(
     trpc.createTask.mutationOptions({
-      onSuccess: () => router.refresh(),
+      onSuccess: () => invalidateTasks(),
     }),
   );
 

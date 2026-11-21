@@ -1,6 +1,6 @@
 "use client";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useInvalidateTasks } from "@/app/hooks/useInvalidateTasks";
 import { useState } from "react";
 import type { Task } from "@/server/services/task";
 import { useTRPC } from "@/trpc/client";
@@ -8,13 +8,13 @@ import { DeleteTaskButton } from "../DeleteTaskButton/DeleteTaskButton";
 
 export function TaskItem({ task }: { task: Task }) {
   const trpc = useTRPC();
-  const router = useRouter();
+  const invalidateTasks = useInvalidateTasks();
   const [editing, setEditing] = useState(false);
   const update = useMutation(
     trpc.updateTask.mutationOptions({
       onSuccess: () => {
         setEditing(false);
-        router.refresh();
+        invalidateTasks();
       },
     }),
   );
